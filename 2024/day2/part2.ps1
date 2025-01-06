@@ -1,38 +1,59 @@
 $numbers = Get-Content -Path '.\input.txt'
-
-function test-row {
+ 
+function Test-Sequence {
   param (
-    [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-    [string]$row
+    [int[]]$sequence
   )
-
-  $nums = $row -split ' '
-  $direction = $null
-
-  for ($count = 0; $count -lt $nums.Length - 1; $count++) {
-    $diff = [int]$nums[$count + 1] - [int]$nums[$count]
-    $safeDist = [Math]::Abs($diff)
     
+  $direction = $null
+    
+  for ($i = 0; $i -lt $sequence.Length - 1; $i++) {
+    $diff = $sequence[$i + 1] - $sequence[$i]
+    $safeDist = [Math]::Abs($diff)
+        
     if ($safeDist -lt 1 -or $safeDist -gt 3) {
       return $false
     }
-
-    # Set initial direction
+        
     if ($null -eq $direction) {
       $direction = $diff -gt 0
-    }
-    # Check if direction remains consistent
-    elseif (($diff -gt 0) -ne $direction) {
+    } elseif (($diff -gt 0) -ne $direction) {
       return $false
     }
   }
   return $true
 }
-
+ 
+function Test-Row {
+  param (
+    [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+    [string]$row
+  )
+    
+  $nums = $row -split ' ' | ForEach-Object { [int]$_ }
+    
+  # First check if the sequence is safe without any removals
+  if (Test-Sequence $nums) {
+    return $true
+  }
+    
+  # If not safe, try removing each number
+  for ($i = 0; $i -lt $nums.Length; $i++) {
+    $dampened = [System.Collections.ArrayList]@($nums)
+    $dampened.RemoveAt($i)
+        
+    if (Test-Sequence $dampened) {
+      return $true
+    }
+  }
+    
+  return $false
+}
+ 
 $safeReports = 0
 foreach ($row in $numbers) {
-  if (test-row $row) {
-    $safeReports ++
+  if (Test-Row $row) {
+    $safeReports++
   }
 }
 Write-Host $safeReports
