@@ -26,6 +26,18 @@ function do-instruction {
     [System.Collections.ArrayList]$grid
   )
 
+  foreach ($light in $grid) {
+    if ($light.x -ge $xStart -and $light.x -le $xEnd -and $light.y -ge $yStart -and $light.y -le $yEnd) {
+      $light.State = !$light.State
+    }
+  }
+  
+  for ($x = $xStart; $x -le $xEnd; $x++) {
+    for ($y = $yStart; $y -le $yEnd; $y++) {
+      
+    }
+  }
+
 }
 
 function process-line {
@@ -68,7 +80,6 @@ function process-line {
 
   return $insList
 }
-
 
 $test = $in | ForEach-Object { process-line -in $_ }
 Write-Host $test
