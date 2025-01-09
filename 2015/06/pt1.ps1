@@ -1,7 +1,8 @@
-$in = Get-Content -Path '.\ex.txt'
+$in = Get-Content -Path '.\input.txt'
 
 function Create-Grid {
   $lightGrid = New-Object System.Collections.ArrayList
+  $count = 0
     
   for ($x = 0; $x -le 999; $x++) {
     for ($y = 0; $y -le 999; $y++) {
@@ -10,9 +11,10 @@ function Create-Grid {
           y = $y
           state = $false
         })
+      $count++
     }
   }
-    
+  Write-Host "Created $count lights on grid"
   return $lightGrid
 }
 
@@ -28,15 +30,14 @@ function do-instruction {
 
   foreach ($light in $grid) {
     if ($light.x -ge $xStart -and $light.x -le $xEnd -and $light.y -ge $yStart -and $light.y -le $yEnd) {
-      $light.State = !$light.State
+      switch ($method) {
+        'toggle ' { $light.State = !$light.State }
+        'turn on' { $light.State = $true }
+        'turn of' { $light.State = $false }
+      }
     }
   }
-  
-  for ($x = $xStart; $x -le $xEnd; $x++) {
-    for ($y = $yStart; $y -le $yEnd; $y++) {
-      
-    }
-  }
+  return $grid
 
 }
 
@@ -81,5 +82,27 @@ function process-line {
   return $insList
 }
 
-$test = $in | ForEach-Object { process-line -in $_ }
-Write-Host $test
+function find-on {
+  param(
+    [System.Collections.ArrayList]$in
+  )
+  $count = 0
+
+  foreach ($light in $in) {
+    if ($light.State -eq $true) {
+      $count++
+    }
+  }
+  return $count
+}
+
+
+$grid = create-grid
+$instructionList = $in | ForEach-Object { process-line -in $_ }
+Write-Host "Number of instructions: $($instructionList.Count)"  # Debug count of instructions
+
+$instructionList | ForEach-Object { 
+    do-instruction -grid $grid -method $_.method -xStart $_.xBeg -xEnd $_.xEnd -yStart $_.yBeg -yEnd $_.yEnd 
+}
+$solution = find-on -in $grid
+Write-Host $solution
